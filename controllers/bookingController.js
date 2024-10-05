@@ -68,7 +68,7 @@ exports.webhookCheckout = (req, res, next) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET,
+      'we_1Q6Xy2DzRBWfu8GMPsC1594z',
     );
   } catch (err) {
     return res.status(400).send(`Webhook error: ${err.message}`);
