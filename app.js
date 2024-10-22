@@ -22,7 +22,7 @@ const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
 
-app.enable('trust proxy');
+app.enable('trust proxy', false);
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -66,7 +66,7 @@ app.use('/api', limiter);
 
 app.post(
   '/webhook-checkout',
-  bodyParser.raw({ type: 'application/json' }),
+  bodyParser.raw({ type: 'application/json' }), // تأكد من استخدام هذا
   bookingController.webhookCheckout
 );
 
