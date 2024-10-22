@@ -1,88 +1,83 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const Tour = require('../modules/tourModel');
-const User = require('../modules/userModel');
-const Booking = require('../modules/bookingModel');
-const catchAsync = require('../utils/catchAsync');
-const factory = require('./handlerFactory');
-
-exports.getCheckoutSession = catchAsync(async (req, res, next) => {
-  // 1) Get the currently booked tour
-  const tour = await Tour.findById(req.params.tourId);
-
-  // 2) Create checkout session
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    // success_url: `${req.protocol}://${req.get('host')}/?tour=${req.params.tourId}&user=${req.user.id}&price=${tour.price}`,
-    success_url: `${req.protocol}://${req.get('host')}/my-tours`,
-    cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
-    customer_email: req.user.email,
-    client_reference_id: req.params.tourId,
-    line_items: [
-      {
-        price_data: {
-          currency: 'usd',
-          unit_amount: tour.price * 100, // تحويل السعر إلى السنتات
-          product_data: {
-            name: `${tour.name} Tour`,
-            description: `${tour.summary}`,
-            images: [
-              `${req.protocol}://${req.get('host')}/img/tours/${tour.imageCover}`,
-            ],
-          },
-        },
-        quantity: 1,
-      },
-    ],
-    mode: 'payment',
-  });
-
-  // 3) Create session as response
-  res.status(200).json({
-    status: 'success',
-    session,
-  });
-});
-
-// exports.createBookingCheckout = catchAsync(async (req, res, next) => {
-//   // This is only Temporary, because it's Unsecure: everyone can make bookings without paying
-//   const { tour, user, price } = req.query;
-
-//   if (!tour && !user && !price) return next();
-
-//   await Booking.create({ tour, user, price });
-
-//   res.redirect(req.originalUrl.split('?')[0]);
-// });
-
-const createBookingCheckout = async (session) => {
-  const tour = session.client_reference_id;
-  const user = (await User.findOne({ email: session.customer_email })).id;
-  const price = session.line_items[0].unit_amount / 100;
-  await Booking.create({ tour, user, price });
-};
-
-exports.webhookCheckout = (req, res, next) => {
-  const signature = req.headers['stripe-signature'];
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET,
-    );
-  } catch (err) {
-    return res.status(400).send(`Webhook error: ${err.message}`);
-  }
-  if (event.type === 'checkout.session.completed')
-    createBookingCheckout(event.data.object);
-
-  res.status(200).json({
-    received: true,
-  });
-};
-
-exports.createBooking = factory.createOne(Booking);
-exports.getBooking = factory.getOne(Booking);
-exports.getAllBookings = factory.getAll(Booking);
-exports.updateBooking = factory.updateOne(Booking);
-exports.deleteBooking = factory.deleteOne(Booking);
+{
+  id: 'cs_test_a1f4BARMgWqbkgNTNJcK6xcxzCUafY7zOZWulhDvJE0w0ajhuPyRYmBp2Z',
+  object: 'checkout.session',
+  after_expiration: null,
+  allow_promotion_codes: null,
+  amount_subtotal: 149700,
+  amount_total: 149700,
+  automatic_tax: { enabled: false, liability: null, status: null },
+  billing_address_collection: null,
+  cancel_url: 'http://127.0.0.1:3000/tour/the-park-camper',
+  client_reference_id: '5c88fa8cf4afda39709c2961',
+  client_secret: null,
+  consent: null,
+  consent_collection: null,
+  created: 1729618030,
+  currency: 'usd',
+  currency_conversion: null,
+  custom_fields: [],
+  custom_text: {
+    after_submit: null,
+    shipping_address: null,
+    submit: null,
+    terms_of_service_acceptance: null
+  },
+  customer: null,
+  customer_creation: 'if_required',
+  customer_details: {
+    address: {
+      city: null,
+      country: 'EG',
+      line1: null,
+      line2: null,
+      postal_code: null,
+      state: null
+    },
+    email: 'laura@example.com',
+    name: 'Shady',
+    phone: null,
+    tax_exempt: 'none',
+    tax_ids: []
+  },
+  customer_email: 'laura@example.com',
+  expires_at: 1729704430,
+  invoice: null,
+  invoice_creation: {
+    enabled: false,
+    invoice_data: {
+      account_tax_ids: null,
+      custom_fields: null,
+      description: null,
+      footer: null,
+      issuer: null,
+      metadata: {},
+      rendering_options: null
+    }
+  },
+  livemode: false,
+  locale: null,
+  metadata: {},
+  mode: 'payment',
+  payment_intent: 'pi_3QClrlDzRBWfu8GM0d4vdgT0',
+  payment_link: null,
+  payment_method_collection: 'if_required',
+  payment_method_configuration_details: null,
+  payment_method_options: { card: { request_three_d_secure: 'automatic' } },
+  payment_method_types: [ 'card' ],
+  payment_status: 'paid',
+  phone_number_collection: { enabled: false },
+  recovered_from: null,
+  saved_payment_method_options: null,
+  setup_intent: null,
+  shipping_address_collection: null,
+  shipping_cost: null,
+  shipping_details: null,
+  shipping_options: [],
+  status: 'complete',
+  submit_type: null,
+  subscription: null,
+  success_url: 'http://127.0.0.1:3000/my-tours?alert=booking',
+  total_details: { amount_discount: 0, amount_shipping: 0, amount_tax: 0 },
+  ui_mode: 'hosted',
+  url: null
+}
