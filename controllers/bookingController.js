@@ -72,7 +72,11 @@ exports.webhookCheckout = (req, res, next) => {
   }
 
   if (event.type === 'checkout.session.completed') {
+    console.log('---------------------------------');
+    console.log(event.data.object);
+    console.log('---------------------------------');
     createBookingCheckout(event.data.object);
+    
   } else {
     console.log('PaymentIntent failed!', event.data.object);
   }
