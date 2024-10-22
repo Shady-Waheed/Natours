@@ -7,7 +7,6 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
 const compression = require('compression');
 const cors = require('cors');
 
@@ -22,7 +21,7 @@ const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
 
-app.disable('trust proxy');
+app.enable('trust proxy');
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -66,8 +65,8 @@ app.use('/api', limiter);
 
 app.post(
   '/webhook-checkout',
-  express.raw({ type: 'application/json' }), // تأكد من استخدام هذا
-  bookingController.webhookCheckout
+  express.raw({ type: 'application/json' }),
+  bookingController.webhookCheckout,
 );
 
 // Body parser, reading data from the body into req.body
