@@ -21,7 +21,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     customer_email: req.user.email,
     client_reference_id: req.params.tourId,
     mode:'payment',
-    line_items: [
+    display_items: [
       {
         price_data: {
           currency: 'usd',
