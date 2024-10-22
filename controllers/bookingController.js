@@ -64,13 +64,17 @@ exports.webhookCheckout = (req, res, next) => {
       process.env.STRIPE_WEBHOOK_SECRET,
     );
   } catch (err) {
+    console.error(`Webhook signature verification failed: ${err.message}`);
     return res.status(400).send(`Webhook error: ${err.message}`);
   }
 
-  if (event.type === 'checkout.session.completed')
+  if (event.type === 'payment_intent.succeeded') {
     createBookingCheckout(event.data.object);
+  } else {
+    console.log('PaymentIntent failed!', event.data.object);
+  }
 
-  res.status(200).json({ received: true });
+  res.json({ received: true });
 };
 
 exports.createBooking = factory.createOne(Booking);
